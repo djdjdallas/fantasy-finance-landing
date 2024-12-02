@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "../lib/supabase";
@@ -13,16 +12,18 @@ export default function ConfirmationPage() {
     const confirmEmail = async () => {
       try {
         const token = searchParams.get("token");
-        const type = searchParams.get("type");
+        console.log("Received token:", token); // Debug log
 
-        if (!token || !type) {
+        if (!token) {
+          console.log("No token found in URL"); // Debug log
           setStatus("invalid");
           return;
         }
 
+        // Using the auth-helpers-nextjs method for verification
         const { error } = await supabase.auth.verifyOtp({
           token_hash: token,
-          type: type,
+          type: "signup",
         });
 
         if (error) {
@@ -31,8 +32,10 @@ export default function ConfirmationPage() {
           return;
         }
 
+        console.log("Email verification successful");
         setStatus("success");
-        // Redirect to home page after 3 seconds
+
+        // Redirect after success
         setTimeout(() => {
           router.push("/");
         }, 3000);
@@ -45,66 +48,80 @@ export default function ConfirmationPage() {
     confirmEmail();
   }, [searchParams, router]);
 
+  const renderContent = () => {
+    switch (status) {
+      case "confirming":
+        return (
+          <div className="flex flex-col items-center">
+            <h2 className="text-2xl font-bold text-white mb-4">
+              Confirming your email...
+            </h2>
+            <div className="w-16 h-16 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        );
+
+      case "success":
+        return (
+          <div className="text-center">
+            <div className="mb-4 text-6xl">✓</div>
+            <h2 className="text-2xl font-bold text-white mb-4">
+              Email Confirmed!
+            </h2>
+            <p className="text-green-500 mb-4">
+              Your email has been successfully verified.
+            </p>
+            <p className="text-gray-400">Redirecting you to the homepage...</p>
+          </div>
+        );
+
+      case "error":
+        return (
+          <div className="text-center">
+            <div className="mb-4 text-6xl">⚠</div>
+            <h2 className="text-2xl font-bold text-white mb-4">
+              Verification Failed
+            </h2>
+            <p className="text-red-500 mb-4">
+              We encountered an error while verifying your email.
+            </p>
+            <button
+              onClick={() => router.push("/")}
+              className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors duration-200"
+            >
+              Return Home
+            </button>
+          </div>
+        );
+
+      case "invalid":
+        return (
+          <div className="text-center">
+            <div className="mb-4 text-6xl">⚠</div>
+            <h2 className="text-2xl font-bold text-white mb-4">
+              Invalid Confirmation Link
+            </h2>
+            <p className="text-red-500 mb-4">
+              The confirmation link appears to be invalid.
+            </p>
+            <button
+              onClick={() => router.push("/")}
+              className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors duration-200"
+            >
+              Return Home
+            </button>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black">
-      <div className="max-w-md w-full mx-4">
-        <div className="bg-gray-900 rounded-lg shadow-xl p-8 text-center">
-          {status === "confirming" && (
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-4">
-                Confirming your email...
-              </h2>
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500 mx-auto"></div>
-            </div>
-          )}
-
-          {status === "success" && (
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-4">
-                Email Confirmed!
-              </h2>
-              <p className="text-green-500 mb-4">
-                Your email has been successfully verified.
-              </p>
-              <p className="text-gray-400">
-                Redirecting you to the homepage...
-              </p>
-            </div>
-          )}
-
-          {status === "error" && (
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-4">
-                Verification Failed
-              </h2>
-              <p className="text-red-500 mb-4">
-                Sorry, we couldn't verify your email.
-              </p>
-              <button
-                onClick={() => router.push("/")}
-                className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition-colors"
-              >
-                Return Home
-              </button>
-            </div>
-          )}
-
-          {status === "invalid" && (
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-4">
-                Invalid Confirmation Link
-              </h2>
-              <p className="text-red-500 mb-4">
-                The confirmation link appears to be invalid.
-              </p>
-              <button
-                onClick={() => router.push("/")}
-                className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition-colors"
-              >
-                Return Home
-              </button>
-            </div>
-          )}
+    <div className="min-h-screen bg-black flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <div className="bg-gray-900 rounded-xl shadow-2xl p-8 border border-gray-800">
+          {renderContent()}
         </div>
       </div>
     </div>
