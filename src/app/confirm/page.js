@@ -1,8 +1,9 @@
 "use client";
-import React, { useEffect, useState } from "react";
+
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { supabase } from "../lib/supabase";
+
 export default function ConfirmationPage() {
   const [status, setStatus] = useState("confirming");
   const router = useRouter();
@@ -31,7 +32,7 @@ export default function ConfirmationPage() {
         }
 
         setStatus("success");
-        // Redirect after successful confirmation
+        // Redirect to home page after 3 seconds
         setTimeout(() => {
           router.push("/");
         }, 3000);
@@ -44,86 +45,66 @@ export default function ConfirmationPage() {
     confirmEmail();
   }, [searchParams, router]);
 
-  const renderContent = () => {
-    switch (status) {
-      case "confirming":
-        return (
-          <div className="flex flex-col items-center">
-            <Loader2 className="h-16 w-16 text-green-500 animate-spin mb-4" />
-            <h2 className="text-2xl font-bold text-white mb-2">
-              Confirming your email...
-            </h2>
-            <p className="text-gray-400">
-              Please wait while we verify your account
-            </p>
-          </div>
-        );
-
-      case "success":
-        return (
-          <div className="flex flex-col items-center">
-            <CheckCircle2 className="h-16 w-16 text-green-500 mb-4" />
-            <h2 className="text-2xl font-bold text-white mb-2">
-              Email Confirmed!
-            </h2>
-            <p className="text-gray-400 mb-4">
-              Your email has been successfully verified
-            </p>
-            <p className="text-green-500">Redirecting you to Commons...</p>
-          </div>
-        );
-
-      case "error":
-        return (
-          <div className="flex flex-col items-center">
-            <XCircle className="h-16 w-16 text-red-500 mb-4" />
-            <h2 className="text-2xl font-bold text-white mb-2">
-              Verification Failed
-            </h2>
-            <p className="text-gray-400 mb-6">
-              We couldn't verify your email. Please try again.
-            </p>
-            <button
-              onClick={() => router.push("/")}
-              className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-all duration-200 font-semibold"
-            >
-              Return to Commons
-            </button>
-          </div>
-        );
-
-      case "invalid":
-        return (
-          <div className="flex flex-col items-center">
-            <XCircle className="h-16 w-16 text-red-500 mb-4" />
-            <h2 className="text-2xl font-bold text-white mb-2">
-              Invalid Confirmation Link
-            </h2>
-            <p className="text-gray-400 mb-6">
-              The confirmation link appears to be invalid or has expired.
-            </p>
-            <button
-              onClick={() => router.push("/")}
-              className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-all duration-200 font-semibold"
-            >
-              Return to Commons
-            </button>
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
-        <div className="bg-gray-900 border border-gray-800 rounded-xl shadow-2xl p-8">
-          <div className="flex justify-center mb-8">
-            <h1 className="text-2xl font-bold text-green-500">Commons</h1>
-          </div>
-          {renderContent()}
+    <div className="min-h-screen flex items-center justify-center bg-black">
+      <div className="max-w-md w-full mx-4">
+        <div className="bg-gray-900 rounded-lg shadow-xl p-8 text-center">
+          {status === "confirming" && (
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-4">
+                Confirming your email...
+              </h2>
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500 mx-auto"></div>
+            </div>
+          )}
+
+          {status === "success" && (
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-4">
+                Email Confirmed!
+              </h2>
+              <p className="text-green-500 mb-4">
+                Your email has been successfully verified.
+              </p>
+              <p className="text-gray-400">
+                Redirecting you to the homepage...
+              </p>
+            </div>
+          )}
+
+          {status === "error" && (
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-4">
+                Verification Failed
+              </h2>
+              <p className="text-red-500 mb-4">
+                Sorry, we couldn't verify your email.
+              </p>
+              <button
+                onClick={() => router.push("/")}
+                className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition-colors"
+              >
+                Return Home
+              </button>
+            </div>
+          )}
+
+          {status === "invalid" && (
+            <div>
+              <h2 className="text-2xl font-bold text-white mb-4">
+                Invalid Confirmation Link
+              </h2>
+              <p className="text-red-500 mb-4">
+                The confirmation link appears to be invalid.
+              </p>
+              <button
+                onClick={() => router.push("/")}
+                className="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition-colors"
+              >
+                Return Home
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
